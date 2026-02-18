@@ -1,10 +1,9 @@
 const express = require('express');
 const app = express();
 
-const route = require('./routes/route')
-
-app.use('/',route)
-
+app.use('/',(req,res)=>{
+    res.send("Welcome Home Collins Victor Obehioye")
+})
 app.listen(5000,()=>{
     console.log("App is running on port 5000");
     
