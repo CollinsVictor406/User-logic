@@ -6,17 +6,18 @@ const events = new schema({
         type:String,
         required:true
     },
-    email:{
+    category:{
         type:String,
+        enum:['Music', 'Sports', 'Tech', 'Food', 'Art'],
         required:true
     },
-    password:{
-        type:String,
+    createdBy:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
         required:true
-    },
-    
+    }
 },
-{timestamps}
+{timestamps:true}
 )
 
 module.exports = mongoose.model('event',events)
