@@ -2,10 +2,11 @@ const Event = require("../model/events");
 const User = require("../model/usermodel")
 
 exports.createEvent = async (req,res) =>{
+
     const { name, category } = req.body;
     try {
         const user = await User.findById(req.user.id)
-        
+        console.log(user);
         if (!user) {
             return res.status(404).json({message:"User not found"})
         }
@@ -23,8 +24,7 @@ exports.createEvent = async (req,res) =>{
 
 exports.getAllEvent = async (req,res) =>{
     try {
-        const event = await Event.find()
-        // console.log(typeOf, event);
+        const event = await Event.find().populate("createdBy")
         
         if(event.length === 0){
             return res.status(404).json({message:"No event available in the data base"})
@@ -43,13 +43,13 @@ exports.getOneEvent = async (req,res) =>{
         if(!event) {
             return res.status(404).json({message:"Event not found"})
         }
-        res.status(200).json({event})
+        return res.status(200).json({event})
     } catch (error) {
-        
+        return res.status(500).json({message:error.message})
     }
 }
 
-exports.getMyEvents = async (req,res) =>{
+exports.getMyEvents = async (req,res) =>{ 
     try {
         const events = await Event.find({ createdBy: req.user.id })
          if (events.length === 0) {
@@ -64,11 +64,15 @@ exports.getMyEvents = async (req,res) =>{
 exports.updateEvent = async (req,res) =>{
     const { id } = req.params
    try {
-     const checkId = await Event.findById(id)
+     const event = await Event.findById(id)
+
      const { name, category } = req.body
-    if(!checkId){ 
+    if(!event){ 
         return res.status(404).json({message:"Event not found"})
      }
+      if (event.createdBy.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ message: "Forbidden: You can only edit your own events" });
+    }
      const UpdatedEvent = await Event.findByIdAndUpdate(id,{name,category},{new:true})
      return res.status(200).json({UpdatedEvent,message:"Event updated successfully"})
    } catch (error) {
@@ -79,10 +83,13 @@ exports.updateEvent = async (req,res) =>{
 exports.deleteEvent = async (req,res) =>{
     const { id } = req.params
     try {
-        const checkId = await Event.findById(id)
-        if(!checkId){
+        const event = await Event.findById(id)
+        if(!event){
             return res.status(404).json({message:"Event not found"})
         }
+         if (event.createdBy.toString() !== req.user.id.toString()) {
+      return res.status(403).json({ message: "Forbidden: You can only delete your own events" });
+    }
         await Event.findByIdAndDelete(id)
         res.status(200).json({message:"Event deleted successfully"})
     } catch (error) {
